@@ -18,18 +18,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Download Android Command Line Tools
+      - name: Setup Android SDK & Build
         run: |
           mkdir -p $HOME/cmdline-tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
           unzip -q tools.zip -d $HOME/cmdline-tools
           mkdir -p $HOME/Android/Sdk/cmdline-tools/latest
           mv $HOME/cmdline-tools/cmdline-tools/* $HOME/Android/Sdk/cmdline-tools/latest/
-          yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/Android/Sdk --licenses
+          export ANDROID_HOME=$HOME/Android/Sdk
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-34" "build-tools;34.0.0"
 
-      - name: Prepare Root Gradle Settings
-        run: |
+          # اصلاح فایل‌های ریشه برای ساخت یکپارچه
           cat << 'EOF' > build.gradle.kts
+          plugins {
+              id("com.android.application") version "8.7.3" apply false
+              id("org.jetbrains.kotlin.android") version "2.0.21" apply false
+          }
+          EOF
+
+          cat << 'EOF' > settings.gradle.kts
           pluginManagement {
               repositories {
                   google()
@@ -48,15 +56,6 @@ jobs:
           include(":app")
           EOF
 
-          cat << 'EOF' > settings.gradle.kts
-          // empty or handled by root
-          EOF
-
-      - name: Build APK with Gradle
-        run: |
-          export ANDROID_HOME=$HOME/Android/Sdk
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-34" "build-tools;34.0.0"
-          
           gradle wrapper
           ./gradlew assembleDebug
 
