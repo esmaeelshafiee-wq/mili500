@@ -18,10 +18,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Make APK Package
+      - name: Build with Gradle
         run: |
-          mkdir -p app/build/outputs/apk/debug
-          touch app/build/outputs/apk/debug/app-debug.apk
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            gradle wrapper
+            ./gradlew assembleDebug
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
