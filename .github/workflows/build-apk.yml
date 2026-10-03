@@ -18,20 +18,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build and Package APK
+      - name: Build with Gradle
         run: |
-          mkdir -p app/build/outputs/apk/debug
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug || echo "Gradle build skipped"
-          else
-            echo "No gradlew found, packaging direct output"
-          fi
-          
-          # تضمین وجود فایل نهایی برای آپلود
-          if [ ! -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            touch app/build/outputs/apk/debug/app-debug.apk
-          fi
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
